@@ -109,7 +109,7 @@
       border: 2px solid #dadce0;
       border-radius: 8px;
       background: #fff;
-      cursor: pointer;
+      cursor: grab;
       transition: border-color 0.15s, background 0.15s, transform 0.12s, box-shadow 0.12s;
       min-height: 52px;
       width: 100%;
@@ -124,6 +124,7 @@
       background: #e8f0fe;
       transform: scale(1.02);
       box-shadow: 0 2px 8px rgba(26, 115, 232, 0.25);
+      cursor: grabbing;
     }
     .match-item.connected {
       border-color: #5f6368;
@@ -163,9 +164,15 @@
     .words-column .match-item { flex-direction: row; }
     .words-column .anchor-dot { margin-left: auto; }
 
-    .defs-column .match-item { flex-direction: row-reverse; }
-    .defs-column .anchor-dot { margin-right: auto; }
-    .defs-column .item-label { text-align: right; }
+    /* Anchor dot stays as first child (left / connecting edge) in defs column */
+    .defs-column .match-item { flex-direction: row; }
+
+    .match-item.drop-target {
+      border-color: #fbbc04;
+      background: #fef7e0;
+      box-shadow: 0 2px 8px rgba(251, 188, 4, 0.4);
+    }
+    .match-item.drop-target .anchor-dot { background: #fbbc04; border-color: #fbbc04; }
 
     .match-item.selected   .anchor-dot { background: #1a73e8; border-color: #1a73e8; }
     .match-item.connected  .anchor-dot { background: #5f6368; border-color: #5f6368; }
@@ -243,7 +250,7 @@
 <main>
   <div class="game-header">
     <h2 id="game-title">🔗 Match the Definition</h2>
-    <p>Click a word and then its matching definition to connect them. Click again to remove a connection.</p>
+    <p>Drag a word to its matching definition to connect them. Click a connected word to remove a connection.</p>
   </div>
 
   <div class="panel">
@@ -290,9 +297,10 @@ const MATCH_CONFIG = {
 /* ════════════════════════════════════════════════════════════════
    STATE
    ════════════════════════════════════════════════════════════════ */
+const DRAG_THRESHOLD = 5; // px – minimum movement to count as a drag
+
 let shuffledDefs = [];   // [{id, text}, …] – definitions in shuffled order
-let selectedWord = null; // wordId (index into MATCH_CONFIG.pairs) or null
-let selectedDef  = null; // defIdx (position in shuffledDefs) or null
+let dragging    = null;  // { wordId, startX, startY, moved } or null
 let connections  = {};   // wordId → defIdx
 let gameRevealed = false;
 
@@ -307,8 +315,7 @@ function init() {
     .map((p, i) => ({ id: i, text: p.definition }))
     .sort(() => Math.random() - 0.5);
 
-  selectedWord = null;
-  selectedDef  = null;
+  dragging     = null;
   connections  = {};
   gameRevealed = false;
 
@@ -335,7 +342,8 @@ function buildDOM() {
       `<span class="item-label">${wordId + 1}.</span>` +
       `<span class="item-text">${pair.word}</span>` +
       `<span class="anchor-dot"></span>`;
-    el.addEventListener("click", () => onWordClick(wordId));
+    el.addEventListener("mousedown", (e) => startDrag(wordId, e));
+    el.addEventListener("touchstart", (e) => startDragTouch(wordId, e), { passive: false });
     wordsCol.appendChild(el);
   });
 
@@ -348,7 +356,6 @@ function buildDOM() {
       `<span class="anchor-dot"></span>` +
       `<span class="item-label">${letters[defIdx]}.</span>` +
       `<span class="item-text">${def.text}</span>`;
-    el.addEventListener("click", () => onDefClick(defIdx));
     defsCol.appendChild(el);
   });
 
@@ -356,42 +363,145 @@ function buildDOM() {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   CLICK HANDLERS
+   DRAG-AND-DROP HANDLERS
    ════════════════════════════════════════════════════════════════ */
-function onWordClick(wordId) {
-  if (gameRevealed) return;
+function hasCrossedThreshold(clientX, clientY) {
+  const dx = clientX - dragging.startX;
+  const dy = clientY - dragging.startY;
+  return Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD;
+}
 
-  if (selectedWord === wordId) {
-    // Tap same word again → deselect
-    selectedWord = null;
-  } else if (selectedDef !== null) {
-    // A definition is already waiting → complete the connection
-    makeConnection(wordId, selectedDef);
-    selectedWord = null;
-    selectedDef  = null;
+function updateDragVisuals(clientX, clientY) {
+  if (hasCrossedThreshold(clientX, clientY)) dragging.moved = true;
+  if (!dragging.moved) return;
+
+  const wordEl = document.querySelector(`#words-col [data-word-id="${dragging.wordId}"]`);
+  const start  = anchorPoint(wordEl, "right");
+  const area   = document.getElementById("match-area");
+  const base   = area.getBoundingClientRect();
+  drawDragLine(start, { x: clientX - base.left, y: clientY - base.top });
+
+  clearDropTargets();
+  const target = findDefElAtPoint(clientX, clientY);
+  if (target) target.classList.add("drop-target");
+}
+
+function startDrag(wordId, e) {
+  if (gameRevealed) return;
+  e.preventDefault();
+  dragging = { wordId, startX: e.clientX, startY: e.clientY, moved: false };
+  updateHighlights();
+  document.addEventListener("mousemove", onDragMove);
+  document.addEventListener("mouseup",   onDragEnd);
+}
+
+function startDragTouch(wordId, e) {
+  if (gameRevealed) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  dragging = { wordId, startX: t.clientX, startY: t.clientY, moved: false };
+  updateHighlights();
+  document.addEventListener("touchmove",   onDragMoveTouch,  { passive: false });
+  document.addEventListener("touchend",    onDragEndTouch);
+  document.addEventListener("touchcancel", onDragEndTouch);
+}
+
+function onDragMove(e) {
+  if (!dragging) return;
+  updateDragVisuals(e.clientX, e.clientY);
+}
+
+function onDragMoveTouch(e) {
+  if (!dragging) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  updateDragVisuals(t.clientX, t.clientY);
+}
+
+function onDragEnd(e) {
+  if (!dragging) return;
+  document.removeEventListener("mousemove", onDragMove);
+  document.removeEventListener("mouseup",   onDragEnd);
+
+  clearDropTargets();
+  removeDragLine();
+
+  if (dragging.moved) {
+    const target = findDefElAtPoint(e.clientX, e.clientY);
+    if (target) makeConnection(dragging.wordId, +target.dataset.defIdx);
   } else {
-    selectedWord = wordId;
-    selectedDef  = null;
+    // Short click on a connected word → remove its connection
+    if (dragging.wordId in connections) {
+      delete connections[dragging.wordId];
+      clearFeedback();
+      drawLines();
+    }
   }
+
+  dragging = null;
   updateHighlights();
 }
 
-function onDefClick(defIdx) {
-  if (gameRevealed) return;
+function onDragEndTouch(e) {
+  if (!dragging) return;
+  document.removeEventListener("touchmove",   onDragMoveTouch);
+  document.removeEventListener("touchend",    onDragEndTouch);
+  document.removeEventListener("touchcancel", onDragEndTouch);
 
-  if (selectedDef === defIdx) {
-    // Tap same definition again → deselect
-    selectedDef = null;
-  } else if (selectedWord !== null) {
-    // A word is already waiting → complete the connection
-    makeConnection(selectedWord, defIdx);
-    selectedWord = null;
-    selectedDef  = null;
-  } else {
-    selectedDef  = defIdx;
-    selectedWord = null;
+  clearDropTargets();
+  removeDragLine();
+
+  if (dragging.moved && e.changedTouches.length) {
+    const t      = e.changedTouches[0];
+    const target = findDefElAtPoint(t.clientX, t.clientY);
+    if (target) makeConnection(dragging.wordId, +target.dataset.defIdx);
+  } else if (!dragging.moved) {
+    if (dragging.wordId in connections) {
+      delete connections[dragging.wordId];
+      clearFeedback();
+      drawLines();
+    }
   }
+
+  dragging = null;
   updateHighlights();
+}
+
+function findDefElAtPoint(clientX, clientY) {
+  const el = document.elementFromPoint(clientX, clientY);
+  return el ? el.closest("[data-def-idx]") : null;
+}
+
+function clearDropTargets() {
+  document.querySelectorAll(".drop-target").forEach((el) =>
+    el.classList.remove("drop-target")
+  );
+}
+
+function drawDragLine(start, end) {
+  const svg = document.getElementById("lines-svg");
+  const ns  = "http://www.w3.org/2000/svg";
+  let line  = document.getElementById("drag-line");
+  if (!line) {
+    line = document.createElementNS(ns, "path");
+    line.id = "drag-line";
+    line.setAttribute("stroke",           "#1a73e8");
+    line.setAttribute("stroke-width",     "2.5");
+    line.setAttribute("fill",             "none");
+    line.setAttribute("stroke-linecap",   "round");
+    line.setAttribute("stroke-dasharray", "6 3");
+    svg.appendChild(line);
+  }
+  const cx = (start.x + end.x) / 2;
+  line.setAttribute(
+    "d",
+    `M ${start.x} ${start.y} C ${cx} ${start.y}, ${cx} ${end.y}, ${end.x} ${end.y}`
+  );
+}
+
+function removeDragLine() {
+  const line = document.getElementById("drag-line");
+  if (line) line.remove();
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -430,15 +540,14 @@ function updateHighlights() {
   document.querySelectorAll("#words-col .match-item").forEach((el) => {
     const wid = +el.dataset.wordId;
     el.classList.remove("selected", "connected", "correct", "wrong");
-    if (selectedWord === wid)           el.classList.add("selected");
-    else if (wid in connections)        el.classList.add("connected");
+    if (dragging && dragging.wordId === wid) el.classList.add("selected");
+    else if (wid in connections)             el.classList.add("connected");
   });
 
   document.querySelectorAll("#defs-col .match-item").forEach((el) => {
     const idx = +el.dataset.defIdx;
     el.classList.remove("selected", "connected", "correct", "wrong");
-    if (selectedDef === idx)                 el.classList.add("selected");
-    else if (connectedDefIdxs.has(idx))      el.classList.add("connected");
+    if (connectedDefIdxs.has(idx)) el.classList.add("connected");
   });
 }
 
@@ -551,8 +660,9 @@ function checkAnswers() {
    ════════════════════════════════════════════════════════════════ */
 function revealAnswers() {
   gameRevealed = true;
-  selectedWord = null;
-  selectedDef  = null;
+  dragging     = null;
+  removeDragLine();
+  clearDropTargets();
 
   // Build the perfect mapping
   connections = {};
