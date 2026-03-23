@@ -132,8 +132,8 @@
     .cell-letter input:focus,
     .cell-key    input:focus { background: rgba(26, 115, 232, 0.12); }
 
-    input.is-correct { color: #188038 !important; }
-    input.is-wrong   { color: #c5221f !important; }
+    input.is-correct { color: #188038 !important; background: #e6f4ea !important; }
+    input.is-wrong   { color: #c5221f !important; background: #fce8e6 !important; }
 
     /* ── Clues panel ── */
     .clues-list { list-style: none; counter-reset: clue-ctr; }
@@ -413,8 +413,15 @@ function handleInput(e) {
   input.value = raw.length > 0 ? raw[raw.length - 1].toUpperCase() : "";
   input.classList.remove("is-correct", "is-wrong");
 
-  // Auto-advance to the next cell in the same row
   if (input.value.length === 1) {
+    // Real-time correct / wrong feedback
+    if (input.value === input.dataset.expected) {
+      input.classList.add("is-correct");
+    } else {
+      input.classList.add("is-wrong");
+    }
+
+    // Auto-advance to the next cell in the same row
     const next = document.querySelector(
       `input[data-row="${input.dataset.row}"][data-col="${+input.dataset.col + 1}"]`
     );

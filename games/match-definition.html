@@ -460,7 +460,7 @@ function anchorPoint(el, side) {
   return { x, y };
 }
 
-function drawLines(colorFn) {
+function drawLines(colorFn = (wid, di) => shuffledDefs[di].id === wid ? "#188038" : "#c5221f") {
   const svg = document.getElementById("lines-svg");
   svg.innerHTML = "";
   const ns = "http://www.w3.org/2000/svg";
@@ -477,7 +477,7 @@ function drawLines(colorFn) {
     const end   = anchorPoint(defEl,  "left");
     const cx    = (start.x + end.x) / 2;
 
-    const color = colorFn ? colorFn(wordId, defIdx) : "#1a73e8";
+    const color = colorFn(wordId, defIdx);
 
     const path = document.createElementNS(ns, "path");
     path.setAttribute(
@@ -532,9 +532,7 @@ function checkAnswers() {
     }
   });
 
-  drawLines((wordId, defIdx) =>
-    shuffledDefs[defIdx].id === wordId ? "#188038" : "#c5221f"
-  );
+  drawLines();
 
   const fb = document.getElementById("feedback");
   if (correct === n) {
