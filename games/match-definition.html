@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Match the Definition — Jstn Angielski</title>
+  <title>Match the Definition — Justyna's Presentation Quiz</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -28,18 +28,9 @@
       margin: 0 auto;
       text-align: center;
     }
-    .back-link {
-      position: absolute;
-      left: 1.5rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: rgba(255, 255, 255, 0.9);
-      text-decoration: none;
-      font-size: 0.95rem;
-      transition: opacity 0.2s;
-    }
-    .back-link:hover { opacity: 0.7; }
     header h1 { font-size: 1.8rem; letter-spacing: 1px; }
+    header h1 a { color: inherit; text-decoration: none; }
+    header h1 a:hover { opacity: 0.85; }
     header p  { margin-top: 0.25rem; font-size: 1rem; opacity: 0.85; }
 
     /* ── Main layout ── */
@@ -222,7 +213,6 @@
       .words-column { padding-right: 40px; }
       .defs-column  { padding-left: 40px; }
       .match-item   { font-size: 0.85rem; padding: 0.5rem 0.75rem; min-height: 44px; }
-      .back-link    { font-size: 0.8rem; }
     }
     @media (max-width: 480px) {
       .words-column { padding-right: 24px; }
@@ -241,9 +231,8 @@
 <body>
 
 <header>
-  <a href="../index.html" class="back-link">← Home</a>
   <div class="header-inner">
-    <h1>📚 Jstn Angielski</h1>
+    <h1><a href="../index.html">📚 Justyna's Presentation Quiz</a></h1>
   </div>
 </header>
 
@@ -261,8 +250,6 @@
     </div>
 
     <div class="controls">
-      <button class="btn btn-primary"   onclick="checkAnswers()">✔ Check</button>
-      <button class="btn btn-secondary" onclick="revealAnswers()">👁 Show Answers</button>
       <button class="btn btn-outline"   onclick="resetGame()">↺ Reset</button>
     </div>
 
@@ -529,6 +516,7 @@ function makeConnection(wordId, defIdx) {
   clearFeedback();
   updateHighlights();
   drawLines();
+  checkAllCorrect();
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -705,10 +693,100 @@ function clearFeedback() {
 window.addEventListener("resize", () => drawLines());
 
 /* ════════════════════════════════════════════════════════════════
+   AUTO-CHECK & FIREWORKS
+   ════════════════════════════════════════════════════════════════ */
+function checkAllCorrect() {
+  const n = MATCH_CONFIG.pairs.length;
+  if (Object.keys(connections).length < n) return;
+
+  const allCorrect = Object.entries(connections)
+    .every(([wid, di]) => shuffledDefs[+di].id === +wid);
+
+  if (allCorrect) {
+    document.querySelectorAll(".match-item").forEach((el) => {
+      el.classList.remove("selected", "connected", "wrong");
+      el.classList.add("correct");
+    });
+    drawLines(() => "#188038");
+    const fb = document.getElementById("feedback");
+    fb.className = "feedback feedback-success";
+    fb.textContent = `✅ Well done! All ${n} answers correct!`;
+    gameRevealed = true;
+    launchFireworks();
+  }
+}
+
+function launchFireworks() {
+  const canvas = document.getElementById("fireworks-canvas");
+  if (!canvas) return;
+  canvas.style.display = "block";
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext("2d");
+
+  const COLORS = ["#f44336","#e91e63","#9c27b0","#3f51b5","#2196f3",
+                  "#00bcd4","#4caf50","#ffeb3b","#ff9800","#ff5722"];
+  const particles = [];
+  let launches = 0;
+  const MAX_LAUNCHES = 8;
+
+  function createExplosion(x, y) {
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    for (let i = 0; i < 70; i++) {
+      const angle = (Math.PI * 2 * i) / 70 + Math.random() * 0.2;
+      const speed = 2 + Math.random() * 6;
+      particles.push({ x, y, vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed, alpha: 1, color,
+        radius: 2 + Math.random() * 3 });
+    }
+  }
+
+  function scheduleExplosion() {
+    const x = canvas.width  * (0.15 + Math.random() * 0.7);
+    const y = canvas.height * (0.1  + Math.random() * 0.45);
+    createExplosion(x, y);
+    launches++;
+    if (launches < MAX_LAUNCHES) setTimeout(scheduleExplosion, 400 + Math.random() * 300);
+  }
+  scheduleExplosion();
+
+  function onResize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  window.addEventListener("resize", onResize);
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.vy += 0.09;
+      p.alpha -= 0.014;
+      if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle   = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    if (particles.length > 0 || launches < MAX_LAUNCHES) {
+      requestAnimationFrame(animate);
+    } else {
+      canvas.style.display = "none";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      window.removeEventListener("resize", onResize);
+    }
+  }
+  animate();
+}
+
+/* ════════════════════════════════════════════════════════════════
    BOOT
    ════════════════════════════════════════════════════════════════ */
 init();
 </script>
 
+<canvas id="fireworks-canvas" style="display:none;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;"></canvas>
 </body>
 </html>
