@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jstn Angielski</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #1a73e8;
+      color: #fff;
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    main {
+      flex: 1;
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      width: 100%;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.75rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .card .icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      color: #1a73e8;
+    }
+
+    .card p {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #555;
+    }
+
+    .intro {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.75rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #444;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📚 Jstn Angielski</h1>
+    <p>Nauka angielskiego — krok po kroku</p>
+  </header>
+
+  <main>
+    <div class="intro">
+      <p>Witaj! Ta strona to miejsce do nauki języka angielskiego. Znajdziesz tu ćwiczenia, słówka i materiały, które pomogą Ci rozwijać swoje umiejętności.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon">🔤</div>
+        <h2>Słownictwo</h2>
+        <p>Ucz się nowych słów i zwrotów przydatnych w codziennych rozmowach.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📝</div>
+        <h2>Gramatyka</h2>
+        <p>Poznaj zasady gramatyki angielskiej i unikaj typowych błędów.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🗣️</div>
+        <h2>Konwersacje</h2>
+        <p>Ćwicz typowe dialogi i przygotuj się na rozmowy w różnych sytuacjach.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Jstn Angielski</p>
+  </footer>
+
+</body>
+</html>
