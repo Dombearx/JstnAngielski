@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Krzyżówka — Jstn Angielski</title>
+  <title>Crossword — Jstn Angielski</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -240,17 +240,16 @@
 <body>
 
 <header>
-  <a href="../index.html" class="back-link">← Strona główna</a>
+  <a href="../index.html" class="back-link">← Home</a>
   <div class="header-inner">
     <h1>📚 Jstn Angielski</h1>
-    <p>Nauka angielskiego — krok po kroku</p>
   </div>
 </header>
 
 <main>
   <div class="game-header">
-    <h2>🔤 Krzyżówka</h2>
-    <p>Wpisz słowa na podstawie podpowiedzi. Zaznaczona kolumna tworzy ukryte hasło!</p>
+    <h2>🔤 Crossword</h2>
+    <p>Fill in the words from the clues. The highlighted column reveals the hidden word!</p>
   </div>
 
   <div class="game-layout">
@@ -261,22 +260,22 @@
 
     <!-- Clues -->
     <div class="panel">
-      <h3>Podpowiedzi</h3>
+      <h3>Clues</h3>
       <ul class="clues-list" id="clues-list"></ul>
     </div>
   </div>
 
   <!-- Hidden-word solution row -->
   <div class="panel solution-section">
-    <div class="solution-label">Rozwiązanie:</div>
+    <div class="solution-label">Solution:</div>
     <div class="solution-cells" id="solution-cells"></div>
   </div>
 
   <!-- Buttons -->
   <div class="controls">
-    <button class="btn btn-primary"   onclick="checkAnswers()">Sprawdź odpowiedzi</button>
-    <button class="btn btn-secondary" onclick="revealAnswers()">Pokaż odpowiedzi</button>
-    <button class="btn btn-outline"   onclick="resetCrossword()">Resetuj</button>
+    <button class="btn btn-primary"   onclick="checkAnswers()">Check Answers</button>
+    <button class="btn btn-secondary" onclick="revealAnswers()">Show Answers</button>
+    <button class="btn btn-outline"   onclick="resetCrossword()">Reset</button>
   </div>
 
   <div id="feedback" class="feedback"></div>
@@ -337,7 +336,7 @@ function renderCrossword() {
 
   const table   = document.createElement("table");
   table.className = "crossword-table";
-  table.setAttribute("aria-label", "Siatka krzyżówki");
+  table.setAttribute("aria-label", "Crossword grid");
 
   const cluesList     = document.getElementById("clues-list");
   const solutionCells = document.getElementById("solution-cells");
@@ -368,7 +367,7 @@ function renderCrossword() {
         input.setAttribute("autocapitalize", "characters");
         input.setAttribute("spellcheck", "false");
         input.setAttribute("aria-label",
-          `Wiersz ${rowIdx + 1}, litera ${letterIdx + 1}`);
+          `Row ${rowIdx + 1}, letter ${letterIdx + 1}`);
         input.dataset.row      = rowIdx;
         input.dataset.col      = letterIdx;   // position inside word
         input.dataset.gridcol  = col;         // absolute grid column
@@ -514,13 +513,13 @@ function checkAnswers() {
 
   const fb = document.getElementById("feedback");
   if (correct === total) {
-    fb.textContent = "🎉 Brawo! Wszystkie odpowiedzi są poprawne!";
+    fb.textContent = "🎉 Well done! All answers are correct!";
     fb.className = "feedback feedback-success";
   } else {
     const hint = allFilled
-      ? "Spróbuj jeszcze raz!"
-      : "Wypełnij pozostałe pola!";
-    fb.textContent = `✏️ Poprawnych: ${correct} z ${total}. ${hint}`;
+      ? "Try again!"
+      : "Fill in the remaining cells!";
+    fb.textContent = `✏️ Correct: ${correct} of ${total}. ${hint}`;
     fb.className = "feedback feedback-partial";
   }
 }
@@ -539,7 +538,7 @@ function revealAnswers() {
   });
   updateSolution();
   const fb = document.getElementById("feedback");
-  fb.textContent = "💡 Odpowiedzi zostały ujawnione.";
+  fb.textContent = "💡 Answers have been revealed.";
   fb.className = "feedback feedback-partial";
 }
 
