@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dopasuj definicję — Jstn Angielski</title>
+  <title>Match the Definition — Jstn Angielski</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -234,17 +234,16 @@
 <body>
 
 <header>
-  <a href="../index.html" class="back-link">← Strona główna</a>
+  <a href="../index.html" class="back-link">← Home</a>
   <div class="header-inner">
     <h1>📚 Jstn Angielski</h1>
-    <p>Nauka angielskiego — krok po kroku</p>
   </div>
 </header>
 
 <main>
   <div class="game-header">
-    <h2 id="game-title">🔗 Dopasuj definicję</h2>
-    <p>Kliknij słowo, a następnie pasującą definicję, aby je połączyć. Kliknij ponownie, aby usunąć połączenie.</p>
+    <h2 id="game-title">🔗 Match the Definition</h2>
+    <p>Click a word and then its matching definition to connect them. Click again to remove a connection.</p>
   </div>
 
   <div class="panel">
@@ -255,9 +254,9 @@
     </div>
 
     <div class="controls">
-      <button class="btn btn-primary"   onclick="checkAnswers()">✔ Sprawdź</button>
-      <button class="btn btn-secondary" onclick="revealAnswers()">👁 Pokaż odpowiedzi</button>
-      <button class="btn btn-outline"   onclick="resetGame()">↺ Resetuj</button>
+      <button class="btn btn-primary"   onclick="checkAnswers()">✔ Check</button>
+      <button class="btn btn-secondary" onclick="revealAnswers()">👁 Show Answers</button>
+      <button class="btn btn-outline"   onclick="resetGame()">↺ Reset</button>
     </div>
 
     <div class="feedback" id="feedback"></div>
@@ -275,7 +274,7 @@
    Add or remove items from `pairs` to change n.
    ════════════════════════════════════════════════════════════════ */
 const MATCH_CONFIG = {
-  title: "Połącz wyrazy z właściwymi definicjami",
+  title: "Match the words with the correct definitions",
   pairs: [
     { word: "birth",          definition: "when someone is born" },
     { word: "dream",          definition: "this happens when you are sleeping" },
@@ -537,13 +536,13 @@ function checkAnswers() {
   const fb = document.getElementById("feedback");
   if (correct === n) {
     fb.className = "feedback feedback-success";
-    fb.textContent = `✅ Brawo! Wszystkie ${n} odpowiedzi poprawne!`;
+    fb.textContent = `✅ Well done! All ${n} answers correct!`;
   } else if (correct > 0) {
     fb.className = "feedback feedback-partial";
-    fb.textContent = `⚠️ ${correct} z ${n} poprawnych. Spróbuj jeszcze raz!`;
+    fb.textContent = `⚠️ ${correct} of ${n} correct. Try again!`;
   } else {
     fb.className = "feedback feedback-wrong";
-    fb.textContent = `❌ Żadna odpowiedź nie jest poprawna. Spróbuj jeszcze raz!`;
+    fb.textContent = `❌ No correct answers. Try again!`;
   }
 }
 
@@ -571,7 +570,7 @@ function revealAnswers() {
 
   const fb = document.getElementById("feedback");
   fb.className = "feedback feedback-partial";
-  fb.textContent = "Pokazano poprawne odpowiedzi.";
+  fb.textContent = "Correct answers revealed.";
 }
 
 /* ════════════════════════════════════════════════════════════════
