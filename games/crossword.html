@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Krzyżówka — Jstn Angielski</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a73e8;
+      color: #fff;
+      padding: 1.5rem;
+      position: relative;
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .back-link {
+      position: absolute;
+      left: 1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: opacity 0.2s;
+    }
+    .back-link:hover { opacity: 0.7; }
+    header h1 { font-size: 1.8rem; letter-spacing: 1px; }
+    header p  { margin-top: 0.25rem; font-size: 1rem; opacity: 0.85; }
+
+    /* ── Main layout ── */
+    main {
+      flex: 1;
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      width: 100%;
+    }
+    .game-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    .game-header h2 {
+      font-size: 1.8rem;
+      color: #1a73e8;
+      margin-bottom: 0.4rem;
+    }
+    .game-header p { color: #555; font-size: 1rem; }
+
+    /* ── Two-column game layout ── */
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 720px) {
+      .game-layout { grid-template-columns: 1fr; }
+      .back-link { font-size: 0.8rem; }
+    }
+
+    /* ── Panel card ── */
+    .panel {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    .panel h3 {
+      color: #1a73e8;
+      font-size: 1.05rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e8f0fe;
+    }
+
+    /* ── Crossword grid section ── */
+    .crossword-section { overflow-x: auto; }
+
+    .crossword-table { border-collapse: collapse; margin: 0 auto; }
+    .crossword-table td {
+      width: 42px;
+      height: 42px;
+      padding: 0;
+    }
+
+    .row-num {
+      width: auto !important;
+      min-width: 2rem;
+      text-align: right;
+      padding-right: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #555;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .cell-empty  { background: transparent; border: none; }
+    .cell-letter { border: 2px solid #444; background: #fff; }
+    .cell-key    { border: 2px solid #444; background: #ffe44d; }
+
+    .cell-letter input,
+    .cell-key    input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #222;
+      outline: none;
+      padding: 0;
+      font-family: inherit;
+      cursor: text;
+    }
+    .cell-letter input:focus,
+    .cell-key    input:focus { background: rgba(26, 115, 232, 0.12); }
+
+    input.is-correct { color: #188038 !important; }
+    input.is-wrong   { color: #c5221f !important; }
+
+    /* ── Clues panel ── */
+    .clues-list { list-style: none; counter-reset: clue-ctr; }
+    .clues-list li {
+      counter-increment: clue-ctr;
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid #f0f4f8;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      color: #444;
+    }
+    .clues-list li:last-child { border-bottom: none; }
+    .clues-list li::before {
+      content: counter(clue-ctr) ".";
+      font-weight: 700;
+      color: #1a73e8;
+      min-width: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    /* ── Solution section ── */
+    .solution-section {
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+    .solution-label {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #c5221f;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .solution-cells {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .solution-cell {
+      width: 42px;
+      height: 42px;
+      border: 2px solid #444;
+      background: #ffe44d;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #222;
+      transition: color 0.2s;
+    }
+    .solution-cell.empty { color: #bbb; }
+
+    /* ── Controls ── */
+    .controls {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 0.65rem 1.4rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.15s;
+    }
+    .btn:hover  { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary   { background: #1a73e8; color: #fff; }
+    .btn-secondary { background: #34a853; color: #fff; }
+    .btn-outline   { background: #fff; color: #555; border: 2px solid #ddd; }
+
+    /* ── Feedback ── */
+    .feedback {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 600;
+      min-height: 2rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+    }
+    .feedback-success { color: #188038; background: #e6f4ea; }
+    .feedback-partial { color: #b06000; background: #fef7e0; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="../index.html" class="back-link">← Strona główna</a>
+  <div class="header-inner">
+    <h1>📚 Jstn Angielski</h1>
+    <p>Nauka angielskiego — krok po kroku</p>
+  </div>
+</header>
+
+<main>
+  <div class="game-header">
+    <h2>🔤 Krzyżówka</h2>
+    <p>Wpisz słowa na podstawie podpowiedzi. Zaznaczona kolumna tworzy ukryte hasło!</p>
+  </div>
+
+  <div class="game-layout">
+    <!-- Grid -->
+    <div class="panel crossword-section">
+      <div id="crossword-grid"></div>
+    </div>
+
+    <!-- Clues -->
+    <div class="panel">
+      <h3>Podpowiedzi</h3>
+      <ul class="clues-list" id="clues-list"></ul>
+    </div>
+  </div>
+
+  <!-- Hidden-word solution row -->
+  <div class="panel solution-section">
+    <div class="solution-label">Rozwiązanie:</div>
+    <div class="solution-cells" id="solution-cells"></div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="controls">
+    <button class="btn btn-primary"   onclick="checkAnswers()">Sprawdź odpowiedzi</button>
+    <button class="btn btn-secondary" onclick="revealAnswers()">Pokaż odpowiedzi</button>
+    <button class="btn btn-outline"   onclick="resetCrossword()">Resetuj</button>
+  </div>
+
+  <div id="feedback" class="feedback"></div>
+</main>
+
+<footer>
+  <p>&copy; 2026 Jstn Angielski</p>
+</footer>
+
+<script>
+// =====================================================================
+// CROSSWORD CONFIGURATION
+// ─────────────────────────────────────────────────────────────────────
+// To create a new puzzle, edit the object below:
+//
+//   revealWord      – the hidden word spelled out by the key column
+//   keyColumn       – 0-based index of the grid column that holds the
+//                     hidden word (every row's key letter lands here)
+//   clues           – array of clue objects, one per row:
+//       word            answer (uppercase; Polish characters supported)
+//       keyLetterIndex  0-based index of the letter inside `word` that
+//                       falls in the keyColumn
+//       clue            hint text shown in the clues panel
+//
+// Adding or removing entries in `clues` automatically adjusts the grid.
+// =====================================================================
+const CROSSWORD_CONFIG = {
+  revealWord: "WITAMINY",
+  keyColumn: 4,
+  clues: [
+    { word: "KIWI",        keyLetterIndex: 2, clue: "Tropikalny ptak, który nie lata" },
+    { word: "DYNIA",       keyLetterIndex: 3, clue: "Pomarańczowe warzywo używane na Halloween" },
+    { word: "SAŁATA",      keyLetterIndex: 4, clue: "Zielony liść używany do sałatek" },
+    { word: "PAPRYKA",     keyLetterIndex: 1, clue: "Czerwone, żółte lub zielone warzywo" },
+    { word: "MARCHEW",     keyLetterIndex: 0, clue: "Pomarańczowe warzywo lubiane przez króliki" },
+    { word: "PIETRUSZKA",  keyLetterIndex: 1, clue: "Zielona przyprawa dodawana do zup" },
+    { word: "ANANAS",      keyLetterIndex: 3, clue: "Tropikalny owoc z kolczastą koroną" },
+    { word: "SZCZYPIOREK", keyLetterIndex: 4, clue: "Zielona cebulkowa przyprawa do kanapek" },
+  ],
+};
+
+// =====================================================================
+// ENGINE — no modifications needed here when adding a new puzzle
+// =====================================================================
+
+/** Return the total number of grid columns needed. */
+function gridWidth(cfg) {
+  return cfg.clues.reduce((max, c) => {
+    const end = (cfg.keyColumn - c.keyLetterIndex) + c.word.length;
+    return Math.max(max, end);
+  }, 0);
+}
+
+/** Build the table and clues list from CROSSWORD_CONFIG. */
+function renderCrossword() {
+  const { keyColumn, clues } = CROSSWORD_CONFIG;
+  const totalCols = gridWidth(CROSSWORD_CONFIG);
+
+  const table   = document.createElement("table");
+  table.className = "crossword-table";
+  table.setAttribute("aria-label", "Siatka krzyżówki");
+
+  const cluesList     = document.getElementById("clues-list");
+  const solutionCells = document.getElementById("solution-cells");
+
+  clues.forEach((clueObj, rowIdx) => {
+    const startCol = keyColumn - clueObj.keyLetterIndex;
+    const tr = document.createElement("tr");
+
+    // Row number
+    const numTd = document.createElement("td");
+    numTd.className = "row-num";
+    numTd.textContent = `${rowIdx + 1}.`;
+    tr.appendChild(numTd);
+
+    // Letter cells
+    for (let col = 0; col < totalCols; col++) {
+      const td = document.createElement("td");
+      const letterIdx = col - startCol;
+
+      if (letterIdx >= 0 && letterIdx < clueObj.word.length) {
+        td.className = col === keyColumn ? "cell-key" : "cell-letter";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.maxLength = 2; // trimmed to 1 in handleInput
+        input.setAttribute("autocomplete", "off");
+        input.setAttribute("autocorrect", "off");
+        input.setAttribute("autocapitalize", "characters");
+        input.setAttribute("spellcheck", "false");
+        input.setAttribute("aria-label",
+          `Wiersz ${rowIdx + 1}, litera ${letterIdx + 1}`);
+        input.dataset.row      = rowIdx;
+        input.dataset.col      = letterIdx;   // position inside word
+        input.dataset.gridcol  = col;         // absolute grid column
+        input.dataset.expected = clueObj.word[letterIdx];
+
+        input.addEventListener("input",   handleInput);
+        input.addEventListener("keydown",  handleKeyDown);
+        td.appendChild(input);
+      } else {
+        td.className = "cell-empty";
+      }
+
+      tr.appendChild(td);
+    }
+
+    table.appendChild(tr);
+
+    // Clue list entry
+    const li = document.createElement("li");
+    li.textContent = clueObj.clue;
+    cluesList.appendChild(li);
+  });
+
+  document.getElementById("crossword-grid").appendChild(table);
+
+  // Solution cells (one per letter of the hidden word)
+  CROSSWORD_CONFIG.revealWord.split("").forEach((_, i) => {
+    const cell = document.createElement("div");
+    cell.className = "solution-cell empty";
+    cell.id = `sol-${i}`;
+    cell.textContent = "_";
+    solutionCells.appendChild(cell);
+  });
+}
+
+// ── Input handlers ─────────────────────────────────────────────────
+
+function handleInput(e) {
+  const input = e.target;
+  // Keep only the last character, normalised to uppercase
+  const raw = input.value;
+  input.value = raw.length > 0 ? raw[raw.length - 1].toUpperCase() : "";
+  input.classList.remove("is-correct", "is-wrong");
+
+  // Auto-advance to the next cell in the same row
+  if (input.value.length === 1) {
+    const next = document.querySelector(
+      `input[data-row="${input.dataset.row}"][data-col="${+input.dataset.col + 1}"]`
+    );
+    if (next) next.focus();
+  }
+
+  updateSolution();
+}
+
+function handleKeyDown(e) {
+  const input   = e.target;
+  const row     = +input.dataset.row;
+  const col     = +input.dataset.col;
+  const gridcol = +input.dataset.gridcol;
+
+  const sel = (r, c, attr = "col") =>
+    document.querySelector(`input[data-row="${r}"][data-${attr}="${c}"]`);
+
+  if (e.key === "Backspace" && input.value === "") {
+    const prev = sel(row, col - 1);
+    if (prev) {
+      prev.value = "";
+      prev.classList.remove("is-correct", "is-wrong");
+      prev.focus();
+    }
+    e.preventDefault();
+  } else if (e.key === "ArrowRight") {
+    const next = sel(row, col + 1);
+    if (next) { next.focus(); e.preventDefault(); }
+  } else if (e.key === "ArrowLeft") {
+    const prev = sel(row, col - 1);
+    if (prev) { prev.focus(); e.preventDefault(); }
+  } else if (e.key === "ArrowDown") {
+    for (let r = row + 1; r < CROSSWORD_CONFIG.clues.length; r++) {
+      const below = sel(r, gridcol, "gridcol");
+      if (below) { below.focus(); e.preventDefault(); break; }
+    }
+  } else if (e.key === "ArrowUp") {
+    for (let r = row - 1; r >= 0; r--) {
+      const above = sel(r, gridcol, "gridcol");
+      if (above) { above.focus(); e.preventDefault(); break; }
+    }
+  }
+}
+
+// ── Solution display ───────────────────────────────────────────────
+
+function updateSolution() {
+  CROSSWORD_CONFIG.clues.forEach((c, rowIdx) => {
+    const input = document.querySelector(
+      `input[data-row="${rowIdx}"][data-col="${c.keyLetterIndex}"]`
+    );
+    const cell = document.getElementById(`sol-${rowIdx}`);
+    if (!cell) return;
+    if (input && input.value) {
+      cell.textContent = input.value;
+      cell.classList.remove("empty");
+    } else {
+      cell.textContent = "_";
+      cell.classList.add("empty");
+    }
+  });
+}
+
+// ── Game actions ───────────────────────────────────────────────────
+
+function checkAnswers() {
+  let correct = 0, total = 0, allFilled = true;
+
+  CROSSWORD_CONFIG.clues.forEach((c, rowIdx) => {
+    c.word.split("").forEach((letter, colIdx) => {
+      const input = document.querySelector(
+        `input[data-row="${rowIdx}"][data-col="${colIdx}"]`
+      );
+      if (!input) return;
+      total++;
+      const val = input.value.toUpperCase();
+      const exp = letter.toUpperCase();
+      if (!val) allFilled = false;
+      if (val === exp) {
+        input.classList.add("is-correct");
+        input.classList.remove("is-wrong");
+        correct++;
+      } else {
+        input.classList.add("is-wrong");
+        input.classList.remove("is-correct");
+      }
+    });
+  });
+
+  const fb = document.getElementById("feedback");
+  if (correct === total) {
+    fb.textContent = "🎉 Brawo! Wszystkie odpowiedzi są poprawne!";
+    fb.className = "feedback feedback-success";
+  } else {
+    const hint = allFilled
+      ? "Spróbuj jeszcze raz!"
+      : "Wypełnij pozostałe pola!";
+    fb.textContent = `✏️ Poprawnych: ${correct} z ${total}. ${hint}`;
+    fb.className = "feedback feedback-partial";
+  }
+}
+
+function revealAnswers() {
+  CROSSWORD_CONFIG.clues.forEach((c, rowIdx) => {
+    c.word.split("").forEach((letter, colIdx) => {
+      const input = document.querySelector(
+        `input[data-row="${rowIdx}"][data-col="${colIdx}"]`
+      );
+      if (input) {
+        input.value = letter.toUpperCase();
+        input.classList.remove("is-correct", "is-wrong");
+      }
+    });
+  });
+  updateSolution();
+  const fb = document.getElementById("feedback");
+  fb.textContent = "💡 Odpowiedzi zostały ujawnione.";
+  fb.className = "feedback feedback-partial";
+}
+
+function resetCrossword() {
+  document.querySelectorAll(".crossword-table input").forEach(input => {
+    input.value = "";
+    input.classList.remove("is-correct", "is-wrong");
+  });
+  document.querySelectorAll(".solution-cell").forEach(cell => {
+    cell.textContent = "_";
+    cell.classList.add("empty");
+  });
+  const fb = document.getElementById("feedback");
+  fb.textContent = "";
+  fb.className = "feedback";
+}
+
+// ── Bootstrap ──────────────────────────────────────────────────────
+renderCrossword();
+</script>
+
+</body>
+</html>
