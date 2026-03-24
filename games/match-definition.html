@@ -18,7 +18,7 @@
 
     /* ── Header ── */
     header {
-      background: #1a73e8;
+      background: #a0c6d4;
       color: #fff;
       padding: 1.5rem;
       position: relative;
@@ -47,7 +47,7 @@
     }
     .game-header h2 {
       font-size: 1.8rem;
-      color: #1a73e8;
+      color: #a0c6d4;
       margin-bottom: 0.4rem;
     }
     .game-header p { color: #555; font-size: 1rem; }
@@ -106,12 +106,12 @@
       width: 100%;
     }
     .match-item:hover {
-      border-color: #1a73e8;
+      border-color: #a0c6d4;
       background: #e8f0fe;
       box-shadow: 0 2px 6px rgba(26, 115, 232, 0.18);
     }
     .match-item.selected {
-      border-color: #1a73e8;
+      border-color: #a0c6d4;
       background: #e8f0fe;
       transform: scale(1.02);
       box-shadow: 0 2px 8px rgba(26, 115, 232, 0.25);
@@ -165,7 +165,7 @@
     }
     .match-item.drop-target .anchor-dot { background: #fbbc04; border-color: #fbbc04; }
 
-    .match-item.selected   .anchor-dot { background: #1a73e8; border-color: #1a73e8; }
+    .match-item.selected   .anchor-dot { background: #a0c6d4; border-color: #a0c6d4; }
     .match-item.connected  .anchor-dot { background: #5f6368; border-color: #5f6368; }
     .match-item.correct    .anchor-dot { background: #188038; border-color: #188038; }
     .match-item.wrong      .anchor-dot { background: #c5221f; border-color: #c5221f; }
@@ -190,7 +190,7 @@
     }
     .btn:hover  { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
     .btn:active { transform: translateY(0); }
-    .btn-primary   { background: #1a73e8; color: #fff; }
+    .btn-primary   { background: #a0c6d4; color: #fff; }
     .btn-secondary { background: #34a853; color: #fff; }
     .btn-outline   { background: #fff; color: #555; border: 2px solid #ddd; }
 
@@ -280,6 +280,7 @@ const MATCH_CONFIG = {
     { word: "Triangular composition", definition: "organizing figures in a stable triangle shape" },
     { word: "Color palette",         definition: "the range of colors used in a work" },
     { word: "Anatomical proportion", definition: "correct or idealized structure of the human body" },
+    { word: "Monochrome luminism",   definition: "the suggestive use of light in the context of a narrowed color range" },
   ],
 };
 
@@ -474,7 +475,7 @@ function drawDragLine(start, end) {
   if (!line) {
     line = document.createElementNS(ns, "path");
     line.id = "drag-line";
-    line.setAttribute("stroke",           "#1a73e8");
+    line.setAttribute("stroke",           "#a0c6d4");
     line.setAttribute("stroke-width",     "2.5");
     line.setAttribute("fill",             "none");
     line.setAttribute("stroke-linecap",   "round");
